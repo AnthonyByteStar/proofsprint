@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProofSprint</title>
+    <meta
+      name="description"
+      content="ProofSprint turns shipped products into fast validation sprints with tester links, friction signals, and proof reports."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#/create" aria-label="ProofSprint home">
+        <span class="brand-mark" aria-hidden="true">PS</span>
+        <span class="brand-name">ProofSprint</span>
+      </a>
+      <nav class="topnav" aria-label="Primary">
+        <a href="#/create">New sprint</a>
+        <button type="button" data-action="load-demo">Demo dashboard</button>
+      </nav>
+    </header>
+
+    <main id="app" class="app-shell"></main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      window.PROOFSPRINT_NOVUS_PROJECT_ID = "";
+      window.PROOFSPRINT_SUPABASE = {
+        url: "https://vahmxhprfnltzqckgvyl.supabase.co",
+        publishableKey: "sb_publishable_e74WDdUGdnYpz_U-dhunPA_Vb5te-Ot"
+      };
+      window.proofSprintTrack = function proofSprintTrack(eventName, properties) {
+        if (window.novus && typeof window.novus.track === "function") {
+          window.novus.track(eventName, properties || {});
+        }
+        if (window.Novus && typeof window.Novus.track === "function") {
+          window.Novus.track(eventName, properties || {});
+        }
+        window.__proofSprintEvents = window.__proofSprintEvents || [];
+        window.__proofSprintEvents.push({
+          eventName: eventName,
+          properties: properties || {},
+          createdAt: new Date().toISOString()
+        });
+      };
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>
