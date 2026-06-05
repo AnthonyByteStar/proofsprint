@@ -1,3 +1,9 @@
+pendo.initialize({
+  visitor: {
+    id: ''
+  }
+});
+
 const STORAGE_KEY = "proofsprint:v1";
 
 const GOALS = {
