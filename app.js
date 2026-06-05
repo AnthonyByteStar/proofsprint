@@ -1,7 +1,10 @@
 if (window.pendo && typeof window.pendo.initialize === "function") {
   window.pendo.initialize({
     visitor: {
-      id: ""
+      id: getAnalyticsVisitorId()
+    },
+    account: {
+      id: "proofsprint-public"
     }
   });
 }
@@ -56,6 +59,19 @@ document.addEventListener("input", handleLivePreview);
 document.addEventListener("change", handleLivePreview);
 
 renderRoute();
+
+function getAnalyticsVisitorId() {
+  const key = "proofsprint:analytics-visitor";
+  try {
+    const existing = localStorage.getItem(key);
+    if (existing) return existing;
+    const next = createId("visitor");
+    localStorage.setItem(key, next);
+    return next;
+  } catch (error) {
+    return createId("visitor");
+  }
+}
 
 async function handleClick(event) {
   const actionTarget = event.target.closest("[data-action]");
