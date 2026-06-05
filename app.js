@@ -474,7 +474,7 @@ async function renderTester(sprintId) {
               ${renderScale("clarity", "How clear was the product?", "1 unclear", "5 obvious")}
               ${renderScale("value", "How useful did it feel?", "1 not useful", "5 very useful")}
               ${renderScale("confidence", "How confident would you be trying it again?", "1 low", "5 high")}
-              ${renderScale("friction", "How much friction did you feel?", "1 none", "5 heavy")}
+              ${renderScale("friction", "How smooth was the first path?", "1 blocked", "5 effortless")}
 
               <label class="field full" data-field="understood">
                 <span class="field-label">What did you understand?</span>
@@ -750,7 +750,7 @@ function renderResponses(responses) {
       return `
         <article class="quote-card">
           <blockquote>${escapeHTML(response.confusion)}</blockquote>
-          <footer>${escapeHTML(name)} - clarity ${response.clarity}/5, value ${response.value}/5, friction ${response.friction}/5</footer>
+          <footer>${escapeHTML(name)} - clarity ${response.clarity}/5, value ${response.value}/5, low friction ${response.friction}/5</footer>
         </article>
       `;
     })
@@ -1043,8 +1043,7 @@ function calculateInsights(sprint, responses) {
   const clarity = average(responses, "clarity");
   const value = average(responses, "value");
   const confidence = average(responses, "confidence");
-  const friction = average(responses, "friction");
-  const lowFriction = 6 - friction;
+  const lowFriction = average(responses, "friction");
   const score = Math.round(
     (normalizePositive(clarity) +
       normalizePositive(value) +
@@ -1175,7 +1174,7 @@ function buildMarkdownReport(sprint, responses, insights) {
         `Clarity: ${response.clarity}/5`,
         `Value: ${response.value}/5`,
         `Confidence: ${response.confidence}/5`,
-        `Friction: ${response.friction}/5`,
+        `Low friction: ${response.friction}/5`,
         "",
         `Understood: ${response.understood}`,
         "",
@@ -1211,7 +1210,7 @@ function seedDemo() {
       clarity: 5,
       value: 5,
       confidence: 4,
-      friction: 2,
+      friction: 4,
       understood: "It helps me turn a launched project into a quick test so I know what users actually understood.",
       confusion: "I hesitated at the import packet because I expected responses to appear automatically.",
       improvement: "Make the backend status obvious and show when live collection is enabled.",
@@ -1239,7 +1238,7 @@ function seedDemo() {
       clarity: 5,
       value: 4,
       confidence: 5,
-      friction: 1,
+      friction: 5,
       understood: "It is a fast way for builders to stop guessing after launch.",
       confusion: "The tester flow was clear. I only wondered whether the report could be shared with a team.",
       improvement: "Add a public read-only report link.",

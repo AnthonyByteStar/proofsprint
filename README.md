@@ -13,7 +13,7 @@ Open `index.html` in a browser.
 - Validate required creator/tester fields with friendly inline errors.
 - Guard against oversized public tester links by limiting sprint copy length.
 - Share a tester link.
-- Collect tester scores for clarity, value, confidence, and friction.
+- Collect tester scores for clarity, value, confidence, and low friction.
 - Save and load sprints/responses from Supabase when configured.
 - Generate a dashboard with Proof Score, summary, risk, next experiment, quotes, and export.
 - Import proof packets for manual response collection.
