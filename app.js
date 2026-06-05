@@ -1,8 +1,10 @@
-pendo.initialize({
-  visitor: {
-    id: ''
-  }
-});
+if (window.pendo && typeof window.pendo.initialize === "function") {
+  window.pendo.initialize({
+    visitor: {
+      id: ""
+    }
+  });
+}
 
 const STORAGE_KEY = "proofsprint:v1";
 
