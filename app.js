@@ -88,7 +88,7 @@ async function handleClick(event) {
 
   if (action === "copy-link") {
     copyText(actionTarget.dataset.url || "");
-    track("test_shared", { sprintId: actionTarget.dataset.sprintId || "" });
+    track("test_shared", { sprintId: actionTarget.dataset.sprintId || "", testerLinkLength: (actionTarget.dataset.url || "").length });
     showToast("Tester link copied.");
     return;
   }
@@ -113,8 +113,9 @@ async function handleClick(event) {
     const sprint = getSprint(actionTarget.dataset.sprintId);
     if (!sprint) return;
     const responses = await getResponsesHydrated(sprint.id);
-    copyText(buildMarkdownReport(sprint, responses, calculateInsights(sprint, responses)));
-    track("insight_exported", { sprintId: sprint.id, format: "clipboard" });
+    const clipboardInsights = calculateInsights(sprint, responses);
+    copyText(buildMarkdownReport(sprint, responses, clipboardInsights));
+    track("insight_exported", { sprintId: sprint.id, format: "clipboard", responseCount: responses.length, proofScore: clipboardInsights.score });
     showToast("Report copied.");
     return;
   }
@@ -123,17 +124,18 @@ async function handleClick(event) {
     const sprint = getSprint(actionTarget.dataset.sprintId);
     if (!sprint) return;
     const responses = await getResponsesHydrated(sprint.id);
+    const markdownInsights = calculateInsights(sprint, responses);
     downloadMarkdown(
       `${slugify(sprint.productName || "proofsprint")}-proof-report.md`,
-      buildMarkdownReport(sprint, responses, calculateInsights(sprint, responses))
+      buildMarkdownReport(sprint, responses, markdownInsights)
     );
-    track("insight_exported", { sprintId: sprint.id, format: "markdown" });
+    track("insight_exported", { sprintId: sprint.id, format: "markdown", responseCount: responses.length, proofScore: markdownInsights.score });
     showToast("Report downloaded.");
     return;
   }
 
   if (action === "open-product") {
-    track("product_opened", { sprintId: actionTarget.dataset.sprintId || "" });
+    track("product_opened", { sprintId: actionTarget.dataset.sprintId || "", productUrl: actionTarget.href || "" });
   }
 }
 
@@ -147,7 +149,7 @@ async function handleSubmit(event) {
     if (Object.keys(errors).length) {
       showFormErrors(form, errors);
       focusFirstError(form, errors);
-      track("creator_validation_failed", { fields: Object.keys(errors) });
+      track("creator_validation_failed", { fields: Object.keys(errors), fieldCount: Object.keys(errors).length });
       showToast("Fix the highlighted fields to create the sprint.");
       return;
     }
@@ -159,7 +161,9 @@ async function handleSubmit(event) {
       sprintId: sprint.id,
       goal: sprint.goal,
       signals: sprint.signals,
-      audienceLength: sprint.audience.length
+      audienceLength: sprint.audience.length,
+      productUrl: sprint.productUrl,
+      hasSupabaseSync: isSupabaseConfigured()
     });
     location.hash = `#/dashboard/${sprint.id}`;
     return;
@@ -173,7 +177,7 @@ async function handleSubmit(event) {
     if (Object.keys(errors).length) {
       showFormErrors(form, errors);
       focusFirstError(form, errors);
-      track("tester_validation_failed", { sprintId: sprint.id, fields: Object.keys(errors) });
+      track("tester_validation_failed", { sprintId: sprint.id, fields: Object.keys(errors), fieldCount: Object.keys(errors).length });
       showToast("Complete the highlighted feedback fields.");
       return;
     }
@@ -187,7 +191,10 @@ async function handleSubmit(event) {
       clarity: response.clarity,
       value: response.value,
       confidence: response.confidence,
-      friction: response.friction
+      friction: response.friction,
+      intent: response.intent,
+      goal: sprint.goal,
+      testerNameProvided: Boolean(response.testerName)
     });
     location.hash = `#/thanks/${sprint.id}/${response.id}`;
     return;
@@ -205,7 +212,7 @@ async function handleSubmit(event) {
       saveResponse(response);
       await persistResponseRemote(response);
       form.reset();
-      track("feedback_imported", { sprintId });
+      track("feedback_imported", { sprintId, responseId: response.id });
       showToast("Response imported.");
       renderRoute();
     } catch (error) {
@@ -364,7 +371,9 @@ async function renderDashboard(sprintId) {
   const hasResponses = responses.length > 0;
   trackOnce(`dashboard:${sprint.id}`, "dashboard_viewed", {
     sprintId: sprint.id,
-    responses: responses.length
+    responses: responses.length,
+    proofScore: insights.score,
+    status: insights.status
   });
 
   app.innerHTML = `
@@ -1568,8 +1577,8 @@ function normalizePositive(value) {
 }
 
 function track(eventName, properties) {
-  if (typeof window.proofSprintTrack === "function") {
-    window.proofSprintTrack(eventName, properties || {});
+  if (typeof pendo !== "undefined" && typeof pendo.track === "function") {
+    pendo.track(eventName, properties || {});
   }
 }
 
